@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eLGU Operations Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    
+    <style>
+        [data-theme="dark"] {
+            --bg-color: #0f172a; --surface-color: #1e293b; --border-color: #334155;
+            --text-main: #f8fafc; --text-muted: #94a3b8; --brand-blue: #3b82f6; 
+        }
+        [data-theme="dark"] body { background-color: var(--bg-color); color: var(--text-main); }
+        [data-theme="dark"] .card, [data-theme="dark"] .modal-box, [data-theme="dark"] .sidebar, [data-theme="dark"] .app-header { background-color: var(--surface-color); border-color: var(--border-color); color: var(--text-main); }
+        [data-theme="dark"] .app-header h2 { color: white; }
+        [data-theme="dark"] .modern-input, [data-theme="dark"] .modern-select, [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea { background-color: #0f172a !important; color: #f8fafc !important; border: 1px solid #475569 !important; }
+        [data-theme="dark"] select option { background-color: #1e293b; color: #f8fafc; }
+        [data-theme="dark"] input::placeholder, [data-theme="dark"] textarea::placeholder { color: #64748b !important; }
+        [data-theme="dark"] .modern-table th { background-color: #0f172a; color: #e2e8f0; border-bottom: 2px solid #334155; }
+        [data-theme="dark"] .modern-table td { border-bottom: 1px solid #334155; color: var(--text-main); }
+        [data-theme="dark"] .prof-tab, [data-theme="dark"] .modal-header, [data-theme="dark"] .modal-footer { background-color: var(--surface-color); border-color: var(--border-color); }
+        [data-theme="dark"] div[style*="background:#fef2f2"], [data-theme="dark"] div[style*="background:#fef3c7"], [data-theme="dark"] div[style*="background:rgba(26, 68, 232, 0.1)"] { background-color: #334155 !important; border-color: #475569 !important; color: #f8fafc !important; }
+        [data-theme="dark"] div[style*="background:#fef2f2"] span, [data-theme="dark"] div[style*="background:#fef2f2"] strong { color: #f8fafc !important; }
+        [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
+        
+        body { margin: 0; padding: 0; overflow-x: hidden; }
+        
+        .app-header {
+            position: fixed; top: 0; left: 0; width: 100%; height: 64px;
+            background: white; border-bottom: 1px solid #e2e8f0;
+            display: flex; align-items: center; padding: 0 20px; z-index: 1050; box-sizing: border-box;
+        }
+        .hamburger-btn {
+            background: transparent; border: none; color: var(--text-main); cursor: pointer;
+            padding: 8px; margin-right: 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+        }
+        .hamburger-btn:hover { background: rgba(128,128,128,0.1); }
+        .header-logo { height: 32px; margin-right: 15px; }
+        .header-title { font-size: 1.2rem; font-weight: 700; color: var(--brand-blue); margin: 0; font-family: 'Montserrat', sans-serif;}
+
+        .sidebar {
+            position: fixed; top: 64px; left: 0; height: calc(100vh - 64px);
+            width: 260px; background: white; border-right: 1px solid #e2e8f0;
+            z-index: 1000; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden; white-space: nowrap; display: flex; flex-direction: column;
+        }
+        .sidebar.collapsed { width: 72px; }
+        .sidebar:not(.collapsed) { box-shadow: 4px 0 15px rgba(0,0,0,0.05); }
+
+        .user-widget { display: flex; align-items: center; gap: 12px; padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #e2e8f0; transition: padding 0.3s; }
+        .sidebar.collapsed .user-widget { padding: 15px 0; justify-content: center; }
+        .sidebar.collapsed .user-info { display: none; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; }
+        
+        .side-nav { padding: 10px; flex: 1; display: flex; flex-direction: column; }
+        .sidebar.collapsed .side-nav { padding: 10px 5px; }
+        .nav-btn {
+            display: flex; align-items: center; gap: 15px; padding: 12px 15px; width: 100%; border-radius: 8px;
+            margin-bottom: 4px; border: none; background: transparent; cursor: pointer;
+            font-size: 0.95rem; font-weight: 500; color: #475569; transition: all 0.2s; text-align: left;
+        }
+        [data-theme="dark"] .nav-btn { color: #cbd5e1; }
+        .sidebar.collapsed .nav-btn { justify-content: center; padding: 12px 0; }
+        .sidebar.collapsed .nav-text { display: none; }
+        .nav-btn:hover { background: rgba(59, 130, 246, 0.08); color: var(--brand-blue); }
+        .nav-btn.active { background: rgba(59, 130, 246, 0.12); color: var(--brand-blue); font-weight: 600; }
+        
+        .nav-icon { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; }
+        .nav-icon svg { width: 20px; height: 20px; stroke: currentColor; transition: stroke 0.2s; }
+
+        .main-content { margin-top: 64px; margin-left: 72px; width: calc(100% - 72px); padding: 30px; box-sizing: border-box; transition: none; }
+        .section-header { font-size: 0.9rem; font-weight: 700; color: var(--brand-blue); text-transform: uppercase; border-bottom: 2px solid var(--border-color); padding-bottom: 5px; margin-bottom: 15px; margin-top: 25px; grid-column: 1 / -1; }
+        .file-input-group { display: flex; gap: 10px; align-items:center; }
+        .file-status-link { font-size: 0.8rem; margin-top: 5px; display: block; }
+        .filter-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-top: 20px; }
+        .dash-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .dash-card h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .chart-wrapper { position: relative; height: 300px; width: 100%; }
+        .table-responsive { overflow-x: auto; }
+        .pen-table th { background-color: #d1fae5; color: #065f46; font-weight: 700; }
+        [data-theme="dark"] .pen-table th { background-color: #064e3b; color: #a7f3d0; }
+        .pen-table td { font-weight: 600; text-align: center; }
+        .pen-table td:first-child { text-align: left; }
+        
+        /* Waterfall Logic CSS */
+        .v2-phase { transition: opacity 0.3s ease, filter 0.3s ease; margin-bottom: 25px; }
+        .locked-phase { opacity: 0.4; pointer-events: none; filter: grayscale(100%); position: relative; }
+        .locked-phase::after { content: '🔒 Complete previous phase to unlock'; position: absolute; top: -10px; right: 0; background: #ef4444; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; z-index: 10; }
+    </style>
+</head>
+<body style="display:none;">
+
+    <header class="app-header">
+        <button id="hamburgerBtn" class="hamburger-btn" onclick="toggleSidebar()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <img id="logo-light" class="header-logo" src="logo3.png" alt="eLGU Logo" onerror="this.style.display='none'">
+        <img id="logo-dark" class="header-logo" src="logo_dark.png" alt="eLGU Logo" style="display:none;" onerror="this.style.display='none'">
+        <h2 class="header-title">Command Center</h2>
+    </header>
+
+    <aside class="sidebar collapsed" id="appSidebar">
+        <div class="user-widget" onclick="openAdminProfile()" title="System Profile">
+            <img id="navAvatar" src="" class="user-avatar" style="display:none; object-fit: cover;" onerror="this.style.display='none'; document.getElementById('navAvatarInitials').style.display='flex';">
+            <div id="navAvatarInitials" class="user-avatar" style="background:var(--brand-blue); color:white; display:flex; align-items:center; justify-content:center; font-weight:bold;">A</div>
+            <div class="user-info">
+                <h4 id="navAdminName" style="margin:0; font-size:0.95rem; color:var(--text-main);">Loading...</h4>
+                <span style="font-size:0.75rem; color:var(--text-muted);">View Profile</span>
+            </div>
+        </div>
+
+        <nav class="side-nav">
+            <button class="nav-btn active" onclick="switchView('view-dashboard', this)" title="Dashboard">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg></span>
+                <span class="nav-text">Dashboard</span>
+            </button>
+            <button class="nav-btn" onclick="switchView('view-tasks', this)" title="Task Management">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg></span>
+                <span class="nav-text">Task Management</span>
+            </button>
+            <button class="nav-btn" onclick="switchView('view-masterlist', this)" title="LGU Masterlist">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><path d="M15 5h.01"></path><path d="M19 5h.01"></path></svg></span>
+                <span class="nav-text">LGU Masterlist</span>
+            </button>
+            <button class="nav-btn" onclick="switchView('view-v1', this)" title="V1 Monitoring">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></span>
+                <span class="nav-text">V1 Monitoring</span>
+            </button>
+            <button class="nav-btn" onclick="switchView('view-v2', this)" title="V2 Monitoring">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5L13.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></span>
+                <span class="nav-text">V2 Monitoring</span>
+            </button>
+            <button class="nav-btn" onclick="switchView('view-bpco', this)" title="BPCO Monitoring">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg></span>
+                <span class="nav-text">BPCO Monitoring</span>
+            </button>
+            <button class="nav-btn" onclick="switchView('view-users', this)" title="System Users">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
+                <span class="nav-text">System Users</span>
+            </button>
+            <button class="nav-btn" onclick="switchView('view-audit', this)" title="Audit Trail">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></span>
+                <span class="nav-text">Audit Trail</span>
+            </button>
+            <div style="flex:1;"></div>
+            <button class="nav-btn" onclick="switchView('view-settings', this)" title="Settings">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span>
+                <span class="nav-text">Settings</span>
+            </button>
+        </nav>
+    </aside>
+
+    <main class="main-content" id="appMainContent">
+        
+        <section id="view-dashboard" class="view-section active">
+            <div class="top-header">
+                <h2>Global Dashboard</h2>
+                <div><button class="btn-outline" onclick="exportToCSV()">Export Report</button></div>
+            </div>
+            
+            <div class="dash-card table-responsive" style="margin-bottom: 20px;">
+                <table class="modern-table pen-table">
+                    <thead><tr><th>System Penetration Metrics</th><th># of Operational</th><th>w/ Own System / v1</th><th>Percentage Penetration</th></tr></thead>
+                    <tbody id="penetrationTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="dash-grid">
+                <div class="dash-card"><h3 id="ereadinessTitle">eReadiness Status of all LGUs</h3><div class="chart-wrapper"><canvas id="ereadinessChart"></canvas></div></div>
+                <div class="dash-card"><h3 id="v1Title">LGUs with eLGU-BPLS v1</h3><div class="chart-wrapper"><canvas id="v1ProvChart"></canvas></div></div>
+                <div class="dash-card"><h3 id="v2Title">LGUs with eLGU v2</h3><div class="chart-wrapper"><canvas id="v2StatChart"></canvas></div></div>
+                <div class="dash-card"><h3 id="bpcoTitle">LGUs w/ Operational BPCO</h3><div class="chart-wrapper"><canvas id="bpcoProvChart"></canvas></div></div>
+            </div>
+
+            <div class="dash-card table-responsive" style="margin-top: 20px;">
+                <h3>Data Summary of on-going Engagements for eLGU v2</h3>
+                <table class="modern-table">
+                    <thead><tr><th>Province</th><th>On-going Data Migration</th><th>On-going eGovPay Testing</th><th>On-going eGovPay - Account Creation</th><th>For eGovPay Enrollment</th><th>For eLGU Admin Training</th><th>Done w/ eReadiness - for LOI</th><th>for Project Presentation</th><th>On-going eGovPay - LBP App.</th><th>For Withdrawal</th></tr></thead>
+                    <tbody id="v2EngagementsBody"></tbody>
+                    <tfoot id="v2EngagementsFoot" style="font-weight: bold; background: var(--bg-color);"></tfoot>
+                </table>
+            </div>
+            
+            <div class="dash-card table-responsive" style="margin-top: 20px;">
+                <h3>Provincial Overview Summary</h3>
+                <table class="modern-table">
+                    <thead><tr><th>Province</th><th>Total LGUs</th><th>Op V1</th><th>Op V2</th><th>For Training V2</th><th>Ongoing Trn V2</th></tr></thead>
+                    <tbody id="summaryTableBody"></tbody>
+                    <tfoot id="summaryTableFoot" style="font-weight: bold; background: var(--bg-color);"></tfoot>
+                </table>
+            </div>
+        </section>
+
+        <section id="view-tasks" class="view-section">
+            <div class="top-header">
+                <h2>Task Management & Action Tracking</h2>
+                <button class="btn-primary" onclick="openAddTaskModal()">+ Add Action Item</button>
+            </div>
+            <div class="card">
+                <div class="flex-between" style="margin-bottom:15px;">
+                    <div class="assignment-filters" style="display:flex; gap:10px;">
+                        <select id="taskSortFilter" class="modern-select" style="width:auto;" onchange="renderTasksTable()">
+                            <option value="latest">Sort: Latest to Oldest</option>
+                            <option value="personnel">Sort: By Personnel</option>
+                        </select>
+                        <button id="viewDoneBtn" class="btn-outline" onclick="toggleTaskView()">View Completed</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="modern-table">
+                        <thead><tr><th>Assigned User</th><th>LGU (System)</th><th>Task</th><th>Due</th><th>Action</th></tr></thead>
+                        <tbody id="tasksTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-masterlist" class="view-section">
+            <div class="top-header"><h2>LGU Master Database</h2></div>
+            <div class="card">
+                <div class="filter-row">
+                    <input type="text" id="searchMasterlist" class="modern-input" placeholder="Search Names..." style="flex:1; min-width: 200px;" onkeyup="renderMasterlistTable()">
+                    <select id="filterReg" class="modern-input" style="flex:1; min-width: 150px;" onchange="renderMasterlistTable()"><option value="All">All Regions</option></select>
+                    <select id="filterProv" class="modern-input" style="flex:1; min-width: 150px;" onchange="renderMasterlistTable()"><option value="All">All Provinces</option></select>
+                    <select id="filterMuni" class="modern-input" style="flex:1; min-width: 150px;" onchange="renderMasterlistTable()"><option value="All">All Municipalities</option></select>
+                    <select id="filterDist" class="modern-input" style="flex:1; min-width: 150px;" onchange="renderMasterlistTable()"><option value="All">All Districts</option></select>
+                </div>
+                <div class="table-container">
+                    <table class="modern-table">
+                        <thead><tr><th>LGU Info</th><th>Geography</th><th>Status & Pipelines</th><th>Action</th></tr></thead>
+                        <tbody id="masterlistTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-v1" class="view-section"><div class="top-header"><h2>Version 1 Pipeline Monitoring</h2></div><div class="card"><input type="text" id="searchV1" class="modern-input" placeholder="Search LGU..." style="max-width:300px; margin-bottom:20px;" onkeyup="renderV1Table()"><div class="table-container"><table class="modern-table"><thead><tr><th>LGU & Province</th><th>V1 Historical Status</th><th>Documentary Reqs</th><th>Action</th></tr></thead><tbody id="v1TableBody"></tbody></table></div></div></section>
+        <section id="view-v2" class="view-section"><div class="top-header"><h2>Version 2 Deployment Pipeline</h2></div><div class="card"><input type="text" id="searchV2" class="modern-input" placeholder="Search LGU..." style="max-width:300px; margin-bottom:20px;" onkeyup="renderV2Table()"><div class="table-container"><table class="modern-table"><thead><tr><th>LGU (eReadiness)</th><th>Historical Status</th><th>UAT Status</th><th>Action</th></tr></thead><tbody id="v2TableBody"></tbody></table></div></div></section>
+        
+        <section id="view-bpco" class="view-section">
+            <div class="top-header"><h2>BPCO Operations Tracking</h2></div>
+            <div class="card">
+                <div style="background:rgba(26, 68, 232, 0.1); padding:12px; border-radius:8px; margin-bottom:20px; font-size:0.85rem; color:var(--brand-navy);"><strong>System Rule:</strong> Marking an LGU as 'Operational' here automatically satisfies BPCO requirements for Version 1.</div>
+                <div class="flex-between" style="gap: 15px; margin-bottom:20px;">
+                    <input type="text" id="searchBpco" class="modern-input" placeholder="Search LGU..." style="max-width:300px;" onkeyup="renderBpcoTable()">
+                    <div style="display:flex; gap:10px;">
+                        <select id="filterBpcoLoi" class="modern-input" onchange="renderBpcoTable()"><option value="All">All LOI Status</option><option value="Submitted">LOI Submitted</option><option value="Pending">LOI Pending</option></select>
+                        <select id="filterBpcoDesig" class="modern-input" onchange="renderBpcoTable()"><option value="All">All Desig. Status</option><option value="Submitted">Desig. Submitted</option><option value="Pending">Desig. Pending</option></select>
+                    </div>
+                </div>
+                <div class="table-container"><table class="modern-table"><thead><tr><th>LGU & Province</th><th>BPCO Status</th><th>Requirements</th><th>Action</th></tr></thead><tbody id="bpcoTableBody"></tbody></table></div>
+            </div>
+        </section>
+
+        <section id="view-users" class="view-section">
+            <div class="top-header">
+                <h2>System User Management</h2>
+                <button class="btn-primary" onclick="openUserModal()">+ Add New User</button>
+            </div>
+            <div class="card">
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Manage administrator accounts. These users can be assigned tasks and are tracked in the Audit Log.</p>
+                <div class="table-container">
+                    <table class="modern-table">
+                        <thead><tr><th>Username</th><th>Account Created</th><th>Action</th></tr></thead>
+                        <tbody id="usersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-audit" class="view-section">
+            <div class="top-header"><h2>System Audit Trail</h2><button class="btn-outline" onclick="fetchLogs()">↻ Refresh Logs</button></div>
+            <div class="card">
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">This log automatically records all system interactions, edits, and tasks completed, securely tied to the active user account.</p>
+                <div class="table-container"><table class="modern-table" style="font-size:0.85rem;"><thead><tr><th style="width:200px;">Date & Time</th><th>User Account</th><th>Action Performed</th></tr></thead><tbody id="auditTableBody"></tbody></table></div>
+            </div>
+        </section>
+
+        <section id="view-settings" class="view-section"><div class="top-header"><h2>System Settings</h2></div><div class="card" style="max-width: 600px;"><div class="flex-between" style="padding:15px 0; border-bottom:1px solid var(--border-color);"><div><h4 style="margin:0;">Theme Preference</h4><span class="text-muted">Toggle Light/Dark Mode</span></div><button class="btn-outline" onclick="toggleTheme()" id="themeToggleBtn">Switch to Dark Mode</button></div><div class="flex-between" style="padding:15px 0;"><div><h4 style="margin:0;">Technical Support</h4><span class="text-muted">Contact the lead engineer.</span></div><a href="mailto:irisjuhraaa@gmail.com" class="btn-primary" style="text-decoration:none;">irisjuhraaa@gmail.com</a></div></div></section>
+
+    </main>
+
+    <div id="userModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 400px;">
+            <div class="modal-header"><h2 id="userModalTitle">Manage User</h2><button class="close-btn" onclick="document.getElementById('userModal').classList.remove('active')">&times;</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="manageUserId">
+                <div class="input-group"><label>Username</label><input type="text" id="manageUserUsername" class="modern-input" required></div>
+                <div class="input-group"><label>Password <span style="font-size:0.7rem; font-weight:normal;" id="passHint">(Leave blank to keep current)</span></label><input type="password" id="manageUserPassword" class="modern-input"></div>
+            </div>
+            <div class="modal-footer"><button class="btn-primary" onclick="saveUser()">Save User</button></div>
+        </div>
+    </div>
+
+    <div id="adminProfileModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header"><h2>Account Profile</h2><button class="close-btn" onclick="document.getElementById('adminProfileModal').classList.remove('active')">&times;</button></div>
+            <div class="modal-body" style="text-align: center;">
+                <img id="modalAvatar" src="" style="width:100px; height:100px; border-radius:50%; background:var(--brand-blue); margin-bottom:15px; display:none; object-fit: cover;">
+                <div id="modalAvatarInitials" style="width:100px; height:100px; border-radius:50%; background:var(--brand-blue); color:white; font-size:2rem; display:flex; align-items:center; justify-content:center; margin:0 auto 15px;">A</div>
+                <div class="input-group" style="text-align:left;"><label>System Username (Logged In)</label><input type="text" id="adminNameInput" class="modern-input" readonly style="background-color: var(--bg-color); color: var(--text-muted);"></div>
+                <div class="input-group" style="text-align:left; margin-top:15px;"><label>Upload Profile Picture</label><input type="file" id="adminPicFile" class="modern-input" accept="image/*"></div>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;"><button class="btn-danger" onclick="logoutUser()">Log Out</button><button class="btn-primary" onclick="saveAdminProfile()">Save Picture</button></div>
+        </div>
+    </div>
+
+    <div id="addTaskModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header"><h2>Assign Action Item</h2><button class="close-btn" onclick="document.getElementById('addTaskModal').classList.remove('active')">&times;</button></div>
+            <div class="modal-body">
+                <form id="addTaskForm" onsubmit="event.preventDefault(); submitNewTask();">
+                    <div class="form-grid">
+                        <div class="input-group full-width"><label>Target LGU</label><select id="taskLguSelect" class="modern-input" onchange="checkLguTaskRouting()" required></select></div>
+                        <div id="taskRoutingContainer" class="input-group full-width" style="display:none; padding:10px; border-radius:6px; border:1px solid #fde68a; margin-top: 10px;">
+                            <label style="color:#b45309;">⚠ LGU has multiple active pipelines. Where should this task appear?</label>
+                            <select id="taskTargetSystem" class="modern-input"><option value="General">General / Master Profile</option><option value="V1">Version 1 Monitoring</option><option value="V2">Version 2 Monitoring</option></select>
+                        </div>
+                        <div class="input-group"><label>Assign To (System User)</label>
+                            <select id="taskAssigneeSelect" class="modern-input" onchange="toggleCustomAssignee()" required><option value="">Select User...</option></select>
+                            <input type="text" id="taskAssigneeCustom" class="modern-input" placeholder="Type custom name..." style="display:none; margin-top:8px;">
+                        </div>
+                        <div class="input-group"><label>Due Date</label><input type="date" id="taskDueDate" class="modern-input" required></div>
+                        <div class="input-group full-width"><label>Task Description</label><input type="text" id="taskDesc" class="modern-input" required></div>
+                    </div>
+                    <div class="modal-footer"><button type="submit" class="btn-primary">Deploy Task</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="editLguModal" class="modal-overlay" style="z-index: 1100;">
+        <div class="modal-box modal-large" style="height: 90vh;">
+            <div class="modal-header" style="background: var(--brand-navy); color: white;">
+                <div><h2 id="profLguName" style="color:white; margin:0;">LGU Master Profile</h2><span id="profLguGeo" style="font-size:0.85rem; color:#93c5fd;">Province</span></div>
+                <button class="close-btn" onclick="document.getElementById('editLguModal').classList.remove('active')" style="color:white;">&times;</button>
+            </div>
+
+            <div style="display: flex; background: var(--surface-color); border-bottom: 1px solid var(--border-color);">
+                <button class="tab-btn active" onclick="switchProfTab('tab-general')">General</button>
+                <button class="tab-btn" onclick="switchProfTab('tab-v1')">V1 Monitoring</button>
+                <button class="tab-btn" onclick="switchProfTab('tab-v2')">V2 Monitoring</button>
+                <button class="tab-btn" onclick="switchProfTab('tab-bpco')">BPCO</button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="editLguId">
+                
+                <div id="tab-general" class="prof-tab" style="display: block;">
+                    <div class="form-grid">
+                        <div class="input-group"><label>Region</label>
+                            <select id="editRegion" class="modern-input"><option value="Region IX">Region IX</option><option value="BARMM">BARMM</option></select>
+                        </div>
+                        <div class="input-group"><label>Province</label>
+                            <select id="editProvince" class="modern-input">
+                                <option value="Zamboanga del Norte">Zamboanga del Norte</option><option value="Zamboanga del Sur">Zamboanga del Sur</option><option value="Zamboanga Sibugay">Zamboanga Sibugay</option><option value="Zamboanga City">Zamboanga City</option><option value="Isabela City">Isabela City</option><option value="Basilan">Basilan</option><option value="Sulu">Sulu</option><option value="Tawi-Tawi">Tawi-Tawi</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>City / Municipality</label>
+                            <input type="text" id="editMunicipality" class="modern-input" list="muniList">
+                            <datalist id="muniList"></datalist>
+                        </div>
+                        <div class="input-group"><label>Congressional District</label>
+                            <select id="editDistrict" class="modern-input">
+                                <option value="Lone District">Lone District</option><option value="1st District">1st District</option><option value="2nd District">2nd District</option><option value="3rd District">3rd District</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>Income Class</label>
+                            <select id="editIncome" class="modern-input">
+                                <option value="1st Class">1st Class</option><option value="2nd Class">2nd Class</option><option value="3rd Class">3rd Class</option><option value="4th Class">4th Class</option><option value="5th Class">5th Class</option><option value="6th Class">6th Class</option><option value="Special">Special</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>Mayor</label><input type="text" id="editMayor" class="modern-input"></div>
+                        
+                        <div class="input-group full-width"><hr style="border:0; border-top:1px solid var(--border-color); margin: 5px 0;"></div>
+                        
+                        <div class="input-group"><label>Overall Master Status</label><select id="editStatus" class="modern-input"><option value="For Engagement">For Engagement</option><option value="Passed">Passed</option><option value="Failed">Failed</option><option value="Lacking Documentary Requirements">Lacking Docs</option></select></div>
+                        <div class="input-group"><label>V1 Global Operational?</label><input type="checkbox" id="editV1"></div>
+                        <div class="input-group"><label>V2 Global Operational?</label><input type="checkbox" id="editV2"></div>
+                        <div class="input-group"><label>Own System?</label><input type="checkbox" id="editOwn"></div>
+                        <div class="input-group"><label>BPCO Status (View-Only)</label><input type="text" id="editBpcoView" class="modern-input" readonly style="background:var(--bg-color);"></div>
+                    </div>
+                    <div class="input-group full-width" style="margin-top: 20px;"><div class="flex-between" style="border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-bottom: 10px;"><h4 style="margin:0;">Contact Persons (BPLO, Treasury, etc.)</h4><button type="button" class="btn-outline" style="padding: 4px 8px; font-size: 0.8rem;" onclick="addContactRow()">+ Add Contact</button></div><div class="table-container"><table class="modern-table" style="font-size: 0.8rem;"><thead><tr><th>Name & Email</th><th>Contact #</th><th>Role & Designation</th><th>Status</th><th>Action</th></tr></thead><tbody id="contactsTableBody"></tbody></table></div></div>
+                </div>
+
+                <div id="tab-v1" class="prof-tab">
+                    <div class="form-grid">
+                        <div class="input-group full-width"><label>V1 Status Action</label><select id="v1Status" class="modern-input" style="font-weight: bold;"><option value="Pending">Pending</option><option value="For Engagement">For Engagement</option><option value="For Training">For Training</option><option value="Data Migration">Data Migration</option><option value="On-Going Testing and Data Build-up">On-Going Testing and Data Build-up</option><option value="Operational">Operational</option><option value="With Concerns">With Concerns</option><option value="Withdraw">Withdraw</option><option value="Non-Operational">Non-Operational</option><option value="N/A">N/A (No System Yet)</option><option value="Own System">Own System</option></select></div>
+                        <div class="section-header">Documentary Requirements & Actual Uploads</div>
+                        <div class="input-group full-width file-input-group"><div style="flex:1"><label>LOI Received Date</label><input type="date" id="v1Loi" class="modern-input"></div><div style="flex:2"><label>Upload LOI Form</label><input type="file" id="v1LoiFile" class="modern-input"><input type="hidden" id="v1LoiLink"><div id="v1LoiView" class="file-status-link"></div></div></div>
+                        <div class="input-group full-width file-input-group"><div style="flex:1"><label>SB Reso Received Date</label><input type="date" id="v1Sb" class="modern-input"></div><div style="flex:2"><label>Upload SB Reso Form</label><input type="file" id="v1SbFile" class="modern-input"><input type="hidden" id="v1SbLink"><div id="v1SbView" class="file-status-link"></div></div></div>
+                        <div class="input-group full-width file-input-group"><div style="flex:1"><label>MOA Received Date</label><input type="date" id="v1Moa" class="modern-input"></div><div style="flex:2"><label>Upload MOA Form</label><input type="file" id="v1MoaFile" class="modern-input"><input type="hidden" id="v1MoaLink"><div id="v1MoaView" class="file-status-link"></div></div></div>
+                        <div class="input-group full-width file-input-group"><div style="flex:1"><label>CBD Form Received Date</label><input type="date" id="v1Cbd" class="modern-input"></div><div style="flex:2"><label>Upload CBD Form</label><input type="file" id="v1CbdFile" class="modern-input"><input type="hidden" id="v1CbdLink"><div id="v1CbdView" class="file-status-link"></div></div></div>
+                    </div>
+                </div>
+
+                <div id="tab-v2" class="prof-tab">
+                    <div class="form-grid">
+                        <div class="input-group full-width"><label>V2 Historical Status Action (View-Only/Overrides auto-state)</label><select id="v2Status" class="modern-input" style="font-weight: bold;" onchange="checkV2Waterfall()"><option value="N/A">N/A (No System Yet)</option><option value="Pending">Pending</option><option value="For Engagement">For Engagement</option><option value="Ongoing Engagement">Ongoing Engagement</option><option value="Lacking Documentary Requirements">Lacking Docs</option><option value="eReadiness for Rechecking">eReadiness for Rechecking</option><option value="For Training">For Training</option><option value="Data Migration">Data Migration</option><option value="On-Going Testing and Data Build-up">On-Going Testing and Data Build-up</option><option value="Operational">Operational</option><option value="With Concerns">With Concerns</option><option value="Withdraw">Withdraw</option><option value="Non-Operational">Non-Operational</option><option value="Own System">Own System</option></select></div>
+                        
+                        <div id="v2_phase_0" class="v2-phase full-width">
+                            <div class="section-header">0. eReadiness Phase</div>
+                            <div class="form-grid">
+                                <div class="input-group"><label>eReadiness Score (Passing: 60)</label><input type="number" id="editScore" class="modern-input" oninput="checkV2Waterfall()"></div>
+                                <div class="input-group"><label>eReadiness Result (Auto-calculated)</label><input type="text" id="editScoreLabel" class="modern-input" readonly style="background:var(--bg-color);"></div>
+                                <div class="input-group full-width file-input-group"><div style="flex:1"><label>Upload eReadiness Form</label><input type="file" id="v2EreadinessFile" class="modern-input"><input type="hidden" id="v2EreadinessLink"><div id="v2EreadinessView" class="file-status-link"></div></div></div>
+                            </div>
+                        </div>
+
+                        <div id="v2_phase_1" class="v2-phase full-width">
+                            <div class="section-header">1. Documentary Requirements & Uploads</div>
+                            <div class="form-grid">
+                                <div class="input-group full-width file-input-group"><div style="flex:1"><label>LOI Received Date</label><input type="date" id="v2Loi" class="modern-input" onchange="checkV2Waterfall()"></div><div style="flex:2"><label>Upload LOI File</label><input type="file" id="v2LoiFile" class="modern-input"><input type="hidden" id="v2LoiLink"><div id="v2LoiView" class="file-status-link"></div></div></div>
+                                <div class="input-group full-width file-input-group"><div style="flex:1"><label>SB Reso Received Date</label><input type="date" id="v2Sb" class="modern-input" onchange="checkV2Waterfall()"></div><div style="flex:2"><label>Upload SB Reso File</label><input type="file" id="v2SbFile" class="modern-input"><input type="hidden" id="v2SbLink"><div id="v2SbView" class="file-status-link"></div></div></div>
+                                <div class="input-group full-width file-input-group"><div style="flex:1"><label>MOU Received Date</label><input type="date" id="v2Mou" class="modern-input" onchange="checkV2Waterfall()"></div><div style="flex:2"><label>Upload MOU File</label><input type="file" id="v2MouFile" class="modern-input"><input type="hidden" id="v2MouLink"><div id="v2MouView" class="file-status-link"></div></div></div>
+                                <div class="input-group full-width file-input-group"><div style="flex:1"><label>CBD Form Received Date</label><input type="date" id="v2Cbd" class="modern-input" onchange="checkV2Waterfall()"></div><div style="flex:2"><label>Upload CBD Form</label><input type="file" id="v2CbdFile" class="modern-input"><input type="hidden" id="v2CbdLink"><div id="v2CbdView" class="file-status-link"></div></div></div>
+                            </div>
+                        </div>
+
+                        <div id="v2_phase_2" class="v2-phase full-width">
+                            <div class="section-header">2. Requests & eGovPay Setup</div>
+                            <div style="background:var(--bg-color); padding:15px; border-radius:8px; border:1px solid var(--border-color); margin-bottom:15px;">
+                                <div class="flex-between">
+                                    <h4 style="margin:0; color:var(--brand-blue);">Action Items (To Do)</h4>
+                                    <button type="button" class="btn-outline" onclick="openAddTaskForLgu()">+ Assign Task</button>
+                                </div>
+                                <p style="font-size:0.75rem; color:var(--text-muted);">Tasks created here (like Notify Action Items) will be directly assigned in the Task Manager.</p>
+                            </div>
+                            <div class="form-grid">
+                                <div class="input-group"><label>CBD Date Endorsed to Bank</label><input type="date" id="v2CbdEndorsed" class="modern-input" onchange="checkV2Waterfall()"></div>
+                                <div class="input-group"><label>CBD Approval Date</label><input type="date" id="v2CbdApproved" class="modern-input" onchange="checkV2Waterfall()"></div>
+                            </div>
+                        </div>
+
+                        <div id="v2_phase_3" class="v2-phase full-width">
+                            <div class="section-header">3. Training Phase Details</div>
+                            <div class="form-grid">
+                                <div class="input-group"><label>Training Date</label><input type="date" id="v2TrnDate" class="modern-input" onchange="checkV2Waterfall()"></div><div class="input-group"><label>Status</label><select id="v2TrnStat" class="modern-input" onchange="checkV2Waterfall()"><option>Pending</option><option>On-going</option><option>Completed</option></select></div>
+                                <div class="input-group"><label>Pax (Male)</label><input type="number" id="v2TrnM" class="modern-input" oninput="checkV2Waterfall()"></div><div class="input-group"><label>Pax (Female)</label><input type="number" id="v2TrnF" class="modern-input" oninput="checkV2Waterfall()"></div>
+                                <div class="input-group"><label>Consent Form</label><select id="v2TrnCon" class="modern-input" onchange="checkV2Waterfall()"><option value="0">Pending</option><option value="1">Submitted</option></select></div><div class="input-group"><label>Designation Form</label><select id="v2TrnDes" class="modern-input" onchange="checkV2Waterfall()"><option value="0">Pending</option><option value="1">Submitted</option></select></div>
+                                <div class="input-group full-width file-input-group"><div style="flex:1"><label>Upload AAR File</label><input type="file" id="v2TrnAarFile" class="modern-input"><input type="hidden" id="v2TrnAarLink"><div id="v2TrnAarView" class="file-status-link"></div></div></div>
+                            </div>
+                        </div>
+
+                        <div id="v2_phase_4" class="v2-phase full-width">
+                            <div class="section-header">4. UAT Phase</div>
+                            <div class="form-grid">
+                                <div class="input-group full-width"><h4 style="margin-bottom:0;">System UAT</h4></div>
+                                <div class="input-group"><label>System UAT Status</label><select id="v2UatSys" class="modern-input" onchange="checkV2Waterfall()"><option value="Pending">Pending</option><option value="On-going">On-going</option><option value="With concern">With concern</option><option value="Completed">Completed</option></select></div>
+                                <div class="input-group"><label>System Remarks</label><input type="text" id="v2UatSysRem" class="modern-input" oninput="checkV2Waterfall()"></div>
+                                
+                                <div class="input-group full-width"><h4 style="margin-bottom:0;">eGovPay UAT</h4></div>
+                                <div class="input-group"><label>eGovPay Status</label><select id="v2UatEgovStat" class="modern-input" onchange="checkV2Waterfall()"><option value="Pending">Pending</option><option value="On-going">On-going</option><option value="With concern">With concern</option><option value="Completed">Completed</option></select></div>
+                                <div class="input-group"><label>eGovPay Remarks</label><input type="text" id="v2UatEgovRem" class="modern-input" oninput="checkV2Waterfall()"></div>
+                            </div>
+                        </div>
+
+                        <div id="v2_phase_5" class="v2-phase full-width">
+                            <div class="section-header">5. System Dry-Run</div>
+                            <div class="form-grid">
+                                <div class="input-group"><label>Date Conducted</label><input type="date" id="v2Dry" class="modern-input" onchange="checkV2Waterfall()"></div><div class="input-group"><label>Dry-Run Status</label><select id="v2DryStat" class="modern-input" onchange="checkV2Waterfall()"><option>Pending</option><option>Completed</option></select></div>
+                                <div class="input-group"><label>Pax (Male)</label><input type="number" id="v2DryM" class="modern-input" oninput="checkV2Waterfall()"></div><div class="input-group"><label>Pax (Female)</label><input type="number" id="v2DryF" class="modern-input" oninput="checkV2Waterfall()"></div>
+                                <div class="input-group file-input-group full-width"><div style="flex:1"><label>Upload Dry-Run AAR File</label><input type="file" id="v2DryAarFile" class="modern-input"><input type="hidden" id="v2DryAarLink"><div id="v2DryAarView" class="file-status-link"></div></div></div>
+                            </div>
+                        </div>
+
+                        <div id="v2_phase_6" class="v2-phase full-width">
+                            <div class="section-header">6. Data Migration</div>
+                            <div class="form-grid">
+                                <div class="input-group"><label>Migration Status</label><select id="v2MigStat" class="modern-input" onchange="checkV2Waterfall()"><option value="Pending">Pending</option><option value="On-going">On-going</option><option value="With concern">With concern</option><option value="Completed">Completed</option></select></div><div class="input-group"><label>Migration Remarks</label><textarea id="v2MigRem" class="modern-input" rows="1" style="resize:vertical;" oninput="checkV2Waterfall()"></textarea></div>
+                            </div>
+                        </div>
+
+                        <div id="v2_phase_7" class="v2-phase full-width">
+                            <div class="section-header">7. Launching Phase</div>
+                            <div class="form-grid">
+                                <div class="input-group"><label>Launching Date</label><input type="date" id="v2Launch" class="modern-input" onchange="checkV2Waterfall()"></div><div class="input-group"><label>Number of Pax</label><input type="number" id="v2LaunchPax" class="modern-input" oninput="checkV2Waterfall()"></div>
+                                <div class="input-group full-width"><label>Launch Status</label><select id="v2LaunchStat" class="modern-input" style="font-weight:bold; color:var(--brand-blue);" onchange="checkV2Waterfall()"><option value="Pending">Pending</option><option value="Completed">Completed [Operational]</option></select></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-bpco" class="prof-tab">
+                    <div class="form-grid">
+                        <div class="input-group full-width"><label>BPCO Master Status</label><select id="bpcoStatus" class="modern-input" style="font-weight:bold;"><option value="Non-Operational">Non-Operational</option><option value="Operational">Operational</option><option value="Pending">Pending</option></select></div>
+                        
+                        <div class="section-header">Documentary Submissions & Uploads</div>
+                        <div class="input-group full-width file-input-group">
+                            <div style="flex:1"><label>LOI Submitted Date</label><input type="date" id="bpcoLoi" class="modern-input"></div>
+                            <div style="flex:2"><label>Upload LOI File</label><input type="file" id="bpcoLoiFile" class="modern-input"><input type="hidden" id="bpcoLoiLink"><div id="bpcoLoiView" class="file-status-link"></div></div>
+                        </div>
+                        <div class="input-group full-width file-input-group">
+                            <div style="flex:1"><label>Designation Form</label><input type="date" id="bpcoDesig" class="modern-input"></div>
+                            <div style="flex:2"><label>Upload Designation Form</label><input type="file" id="bpcoDesigFile" class="modern-input"><input type="hidden" id="bpcoDesigLink"><div id="bpcoDesigView" class="file-status-link"></div></div>
+                        </div>
+                        
+                        <div class="section-header">Training Remarks</div>
+                        <div class="input-group"><label>Date Start</label><input type="date" id="bpcoTrnStart" class="modern-input"></div><div class="input-group"><label>Date End</label><input type="date" id="bpcoTrnEnd" class="modern-input"></div>
+                        <div class="input-group"><label>Male Pax</label><input type="number" id="bpcoTrnM" class="modern-input"></div><div class="input-group"><label>Female Pax</label><input type="number" id="bpcoTrnF" class="modern-input"></div>
+
+                        <div class="section-header">Database Buildup Remarks</div>
+                        <div class="input-group"><label>Date Start</label><input type="date" id="bpcoDbStart" class="modern-input"></div><div class="input-group"><label>Date End</label><input type="date" id="bpcoDbEnd" class="modern-input"></div>
+                        <div class="input-group"><label>Male Pax</label><input type="number" id="bpcoDbM" class="modern-input"></div><div class="input-group"><label>Female Pax</label><input type="number" id="bpcoDbF" class="modern-input"></div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;"><button class="btn-danger" onclick="deleteLgu()">Delete LGU</button><button id="saveLguBtn" class="btn-primary" onclick="submitEditLgu()">Save & Audit Profile</button></div>
+        </div>
+    </div>
+
+   <script src="app.js?v=33"></script>
+</body> 
+</html> 
