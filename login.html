@@ -3,77 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>eLGU Command Center - Login</title>
+    <title>eLGU Command Center - Secure Access</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
     <style>
-        body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .auth-card { background: #1e293b; padding: 40px; border-radius: 12px; border: 1px solid #334155; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .auth-card h2 { margin-bottom: 20px; text-align: center; color: white; }
-        .modern-input { width: 100%; background: #0f172a; color: white; border: 1px solid #475569; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
-        .btn-primary { width: 100%; padding: 12px; font-size: 1rem; cursor: pointer; background-color: #3b82f6; color: white; border: none; border-radius: 6px; font-weight: bold; }
-        .btn-primary:hover { background-color: #2563eb; }
-        .toggle-link { display: block; text-align: center; margin-top: 15px; color: #3b82f6; cursor: pointer; font-size: 0.9rem; text-decoration: underline; }
+        .auth-card h2 { text-align: center; color: white; font-family: 'Montserrat', sans-serif; }
+        .modern-input { width: 100%; background: #0f172a; color: white; border: 1px solid #475569; padding: 12px; border-radius: 6px; margin-bottom: 15px; box-sizing: border-box; }
+        .btn-primary { width: 100%; padding: 12px; cursor: pointer; background-color: #3b82f6; color: white; border: none; border-radius: 6px; font-weight: bold; margin-bottom: 10px; transition: 0.2s;}
+        .btn-primary:disabled { background-color: #475569; cursor: not-allowed; }
+        .toggle-link { display: block; text-align: center; color: #93c5fd; cursor: pointer; font-size: 0.85rem; margin-top: 10px; text-decoration: none; }
+        .timer-text { color: #f87171; font-size: 0.8rem; text-align: center; margin-bottom: 10px; font-weight: bold;}
     </style>
 </head>
 <body>
-
     <div class="auth-card" id="loginBox">
-        <div style="text-align: center; margin-bottom: 20px;"><img src="logo_dark.png" style="max-height: 50px;" onerror="this.style.display='none'"></div>
-        <h2>Command Center Login</h2>
+        <h2>System Login</h2>
         <input type="text" id="logUser" class="modern-input" placeholder="Username">
         <input type="password" id="logPass" class="modern-input" placeholder="Password">
         <button class="btn-primary" onclick="processAuth('login')">Access System</button>
-        <span class="toggle-link" onclick="toggleAuth()">Create an account instead</span>
+        <span class="toggle-link" onclick="toggleView('regBox')">Create an account</span>
+        <span class="toggle-link" onclick="toggleView('forgotBox')">Forgot Password?</span>
     </div>
 
     <div class="auth-card" id="regBox" style="display: none;">
-        <div style="text-align: center; margin-bottom: 20px;"><img src="logo_dark.png" style="max-height: 50px;" onerror="this.style.display='none'"></div>
-        <h2>Register New Account</h2>
+        <h2>Register Account</h2>
+        <input type="email" id="regEmail" class="modern-input" placeholder="Valid Email Address">
         <input type="text" id="regUser" class="modern-input" placeholder="Choose Username">
         <input type="password" id="regPass" class="modern-input" placeholder="Choose Password">
-        <button class="btn-primary" onclick="processAuth('register')">Create Account & Login</button>
-        <span class="toggle-link" onclick="toggleAuth()">Back to Login</span>
+        <button class="btn-primary" onclick="processAuth('register')">Submit for Admin Approval</button>
+        <span class="toggle-link" onclick="toggleView('loginBox')">Back to Login</span>
+    </div>
+
+    <div class="auth-card" id="forgotBox" style="display: none;">
+        <h2>Reset Password</h2>
+        <div id="otpRequestUI">
+            <input type="email" id="fEmail" class="modern-input" placeholder="Enter Account Email">
+            <button class="btn-primary" id="reqOtpBtn" onclick="requestOTP()">Send Verification Code</button>
+        </div>
+        <div id="otpVerifyUI" style="display: none;">
+            <div class="timer-text" id="otpTimer">Code expires in: 3:00</div>
+            <input type="text" id="fCode" class="modern-input" placeholder="6-Digit Verification Code">
+            <input type="password" id="fNewPass" class="modern-input" placeholder="New Password">
+            <button class="btn-primary" onclick="resetPassword()">Reset Password</button>
+            <span class="toggle-link" id="resendBtn" style="pointer-events: none; opacity: 0.5;" onclick="requestOTP()">Resend Code (Wait 60s)</span>
+        </div>
+        <span class="toggle-link" onclick="toggleView('loginBox')">Cancel</span>
     </div>
 
     <script>
-        function toggleAuth() {
-            const lb = document.getElementById('loginBox'); const rb = document.getElementById('regBox');
-            if(lb.style.display === 'none') { lb.style.display = 'block'; rb.style.display = 'none'; } 
-            else { lb.style.display = 'none'; rb.style.display = 'block'; }
+        function toggleView(viewId) {
+            document.querySelectorAll('.auth-card').forEach(e => e.style.display = 'none');
+            document.getElementById(viewId).style.display = 'block';
         }
 
         async function processAuth(action) {
             const u = action === 'login' ? document.getElementById('logUser').value : document.getElementById('regUser').value;
             const p = action === 'login' ? document.getElementById('logPass').value : document.getElementById('regPass').value;
-            
-            if(!u || !p) return alert("Please fill all fields.");
+            const e = action === 'register' ? document.getElementById('regEmail').value : null;
+            if(!u || !p) return alert("Fill all required fields.");
+            const payload = { username: u, password: p }; if(e) payload.email = e;
 
-            try {
-                const res = await fetch(`api/auth.php?action=${action}`, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({username: u, password: p}) 
-                });
-                
-                // Catch raw text first so we don't fail silently if PHP throws a warning
-                const text = await res.text(); 
-                
-                try {
-                    const data = JSON.parse(text);
-                    if(data.success) { 
-                        window.location.href = 'index.html'; 
-                    } else { 
-                        alert("Login Failed: " + data.message); 
-                    }
-                } catch(err) {
-                    console.error("Backend Error Response:", text);
-                    alert("System configuration error. Press F12 and check the Console.");
-                }
-            } catch(e) {
-                console.error("Network Error:", e);
-                alert("Network error. Cannot reach the server.");
-            }
+            const res = await fetch(`api/auth.php?action=${action}`, { method: 'POST', body: JSON.stringify(payload) });
+            const data = await res.json();
+            if(data.success) { 
+                if(action === 'login') window.location.href = 'index.html'; 
+                else { alert(data.message); toggleView('loginBox'); }
+            } else alert(data.message);
+        }
+
+        let expiryTimer, resendTimer;
+        async function requestOTP() {
+            const email = document.getElementById('fEmail').value; if(!email) return alert("Enter your email address.");
+            document.getElementById('reqOtpBtn').innerText = "Sending...";
+            const res = await fetch(`api/auth.php?action=request_otp`, { method: 'POST', body: JSON.stringify({email}) });
+            const data = await res.json();
+            if(data.success) {
+                document.getElementById('otpRequestUI').style.display = 'none';
+                document.getElementById('otpVerifyUI').style.display = 'block';
+                startTimers();
+            } else { alert(data.message); document.getElementById('reqOtpBtn').innerText = "Send Verification Code"; }
+        }
+
+        function startTimers() {
+            let exp = 180, resend = 60;
+            clearInterval(expiryTimer); clearInterval(resendTimer);
+            
+            expiryTimer = setInterval(() => {
+                exp--; let m = Math.floor(exp / 60); let s = exp % 60;
+                document.getElementById('otpTimer').innerText = `Code expires in: ${m}:${s < 10 ? '0' : ''}${s}`;
+                if(exp <= 0) { clearInterval(expiryTimer); document.getElementById('otpTimer').innerText = "Code Expired. Please request a new one."; }
+            }, 1000);
+
+            resendTimer = setInterval(() => {
+                resend--; const btn = document.getElementById('resendBtn');
+                btn.innerText = `Resend Code (Wait ${resend}s)`;
+                if(resend <= 0) { clearInterval(resendTimer); btn.innerText = "Resend Code"; btn.style.pointerEvents = "auto"; btn.style.opacity = "1"; }
+            }, 1000);
+        }
+
+        async function resetPassword() {
+            const email = document.getElementById('fEmail').value;
+            const code = document.getElementById('fCode').value;
+            const new_password = document.getElementById('fNewPass').value;
+            if(!code || !new_password) return alert("Please enter the code and new password.");
+            
+            const res = await fetch(`api/auth.php?action=reset_password`, { method: 'POST', body: JSON.stringify({email, code, new_password}) });
+            const data = await res.json();
+            if(data.success) { alert("Security accepted. Password changed successfully."); window.location.reload(); } else alert(data.message);
         }
     </script>
 </body>

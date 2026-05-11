@@ -72,7 +72,12 @@
         .nav-icon { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; }
         .nav-icon svg { width: 20px; height: 20px; stroke: currentColor; transition: stroke 0.2s; }
 
-        .main-content { margin-top: 64px; margin-left: 72px; width: calc(100% - 72px); padding: 30px; box-sizing: border-box; transition: none; }
+        .main-content { 
+            margin-top: 64px; margin-left: 260px; width: calc(100% - 260px); 
+            padding: 30px; box-sizing: border-box; transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .sidebar.collapsed ~ .main-content { margin-left: 72px; width: calc(100% - 72px); }
+
         .section-header { font-size: 0.9rem; font-weight: 700; color: var(--brand-blue); text-transform: uppercase; border-bottom: 2px solid var(--border-color); padding-bottom: 5px; margin-bottom: 15px; margin-top: 25px; grid-column: 1 / -1; }
         .file-input-group { display: flex; gap: 10px; align-items:center; }
         .file-status-link { font-size: 0.8rem; margin-top: 5px; display: block; }
@@ -87,6 +92,21 @@
         .pen-table td { font-weight: 600; text-align: center; }
         .pen-table td:first-child { text-align: left; }
         
+        /* === FILE UPLOAD UI UPGRADES === */
+        .file-input-group { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; align-items: start; width: 100%; }
+        input[type="file"].modern-input { padding: 6px; cursor: pointer; }
+        input[type="file"].modern-input::file-selector-button {
+            background: var(--brand-blue); color: white; border: none; padding: 6px 12px;
+            border-radius: 6px; cursor: pointer; margin-right: 10px; font-weight: 600; font-size: 0.8rem; transition: background 0.2s; font-family: 'Inter', sans-serif;
+        }
+        input[type="file"].modern-input::file-selector-button:hover { background: #2563eb; }
+        .file-view-btn {
+            display: inline-flex; align-items: center; gap: 6px; background: rgba(59, 130, 246, 0.1); color: var(--brand-blue);
+            padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: 600; margin-top: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.2); transition: all 0.2s; width: fit-content;
+        }
+        .file-view-btn:hover { background: var(--brand-blue); color: white; }
+
         /* Waterfall Logic CSS */
         .v2-phase { transition: opacity 0.3s ease, filter 0.3s ease; margin-bottom: 25px; }
         .locked-phase { opacity: 0.4; pointer-events: none; filter: grayscale(100%); position: relative; }
@@ -148,8 +168,16 @@
                 <span class="nav-text">Audit Trail</span>
             </button>
             <div style="flex:1;"></div>
+            <button class="nav-btn" onclick="switchView('view-import', this)" title="Import Database">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></span>
+                <span class="nav-text">Mass Import</span>
+            </button>
+            <button class="nav-btn" onclick="switchView('view-export', this)" title="Export Data">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></span>
+                <span class="nav-text">Export Data</span>
+            </button>
             <button class="nav-btn" onclick="switchView('view-settings', this)" title="Settings">
-                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span>
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0 2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span>
                 <span class="nav-text">Settings</span>
             </button>
         </nav>
@@ -160,12 +188,17 @@
         <section id="view-dashboard" class="view-section active">
             <div class="top-header">
                 <h2>Global Dashboard</h2>
-                <div><button class="btn-outline" onclick="exportToCSV()">Export Report</button></div>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div style="background: rgba(26, 68, 232, 0.1); color: var(--brand-blue); padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.95rem;">
+                        Total LGUs: <span id="totalLguCount" style="font-size: 1.2rem; margin-left: 5px;">0</span>
+                    </div>
+                    <button class="btn-outline" onclick="exportToCSV()">Export Report</button>
+                </div>
             </div>
             
             <div class="dash-card table-responsive" style="margin-bottom: 20px;">
                 <table class="modern-table pen-table">
-                    <thead><tr><th>System Penetration Metrics</th><th># of Operational</th><th>w/ Own System / v1</th><th>Percentage Penetration</th></tr></thead>
+                    <thead><tr><th>System Penetration Metrics</th><th># of Operational / Active</th><th>Percentage Penetration</th></tr></thead>
                     <tbody id="penetrationTableBody"></tbody>
                 </table>
             </div>
@@ -175,6 +208,7 @@
                 <div class="dash-card"><h3 id="v1Title">LGUs with eLGU-BPLS v1</h3><div class="chart-wrapper"><canvas id="v1ProvChart"></canvas></div></div>
                 <div class="dash-card"><h3 id="v2Title">LGUs with eLGU v2</h3><div class="chart-wrapper"><canvas id="v2StatChart"></canvas></div></div>
                 <div class="dash-card"><h3 id="bpcoTitle">LGUs w/ Operational BPCO</h3><div class="chart-wrapper"><canvas id="bpcoProvChart"></canvas></div></div>
+                <div class="dash-card"><h3 id="conversionTitle">V1 to V2 Conversion Rate</h3><div class="chart-wrapper"><canvas id="conversionChart"></canvas></div></div>
             </div>
 
             <div class="dash-card table-responsive" style="margin-top: 20px;">
@@ -204,16 +238,23 @@
             <div class="card">
                 <div class="flex-between" style="margin-bottom:15px;">
                     <div class="assignment-filters" style="display:flex; gap:10px;">
+                        <select id="taskPersonnelFilter" class="modern-select" style="width:auto;" onchange="renderTasksTable()"><option value="All">All Personnel</option></select>
+                        <select id="taskUrgencyFilter" class="modern-select" style="width:auto;" onchange="renderTasksTable()">
+                            <option value="All">All Urgency</option>
+                            <option value="Overdue">Overdue</option>
+                            <option value="Almost Due">Almost Due (<= 7 days)</option>
+                        </select>
                         <select id="taskSortFilter" class="modern-select" style="width:auto;" onchange="renderTasksTable()">
-                            <option value="latest">Sort: Latest to Oldest</option>
-                            <option value="personnel">Sort: By Personnel</option>
+                            <option value="due_asc">Sort: Due Date (Nearest First)</option>
+                            <option value="due_desc">Sort: Due Date (Furthest First)</option>
+                            <option value="latest">Sort: Latest Added</option>
                         </select>
                         <button id="viewDoneBtn" class="btn-outline" onclick="toggleTaskView()">View Completed</button>
                     </div>
                 </div>
                 <div class="table-container">
                     <table class="modern-table">
-                        <thead><tr><th>Assigned User</th><th>LGU (System)</th><th>Task</th><th>Due</th><th>Action</th></tr></thead>
+                        <thead><tr><th>Assigned User</th><th>LGU Target</th><th>Task</th><th>Due</th><th>Action</th></tr></thead>
                         <tbody id="tasksTableBody"></tbody>
                     </table>
                 </div>
@@ -232,15 +273,58 @@
                 </div>
                 <div class="table-container">
                     <table class="modern-table">
-                        <thead><tr><th>LGU Info</th><th>Geography</th><th>Status & Pipelines</th><th>Action</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>LGU Info</th>
+                                <th>Geography</th>
+                                <th>System Version</th>
+                                <th>Overall Master Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
                         <tbody id="masterlistTableBody"></tbody>
                     </table>
                 </div>
             </div>
         </section>
 
-        <section id="view-v1" class="view-section"><div class="top-header"><h2>Version 1 Pipeline Monitoring</h2></div><div class="card"><input type="text" id="searchV1" class="modern-input" placeholder="Search LGU..." style="max-width:300px; margin-bottom:20px;" onkeyup="renderV1Table()"><div class="table-container"><table class="modern-table"><thead><tr><th>LGU & Province</th><th>V1 Historical Status</th><th>Documentary Reqs</th><th>Action</th></tr></thead><tbody id="v1TableBody"></tbody></table></div></div></section>
-        <section id="view-v2" class="view-section"><div class="top-header"><h2>Version 2 Deployment Pipeline</h2></div><div class="card"><input type="text" id="searchV2" class="modern-input" placeholder="Search LGU..." style="max-width:300px; margin-bottom:20px;" onkeyup="renderV2Table()"><div class="table-container"><table class="modern-table"><thead><tr><th>LGU (eReadiness)</th><th>Historical Status</th><th>UAT Status</th><th>Action</th></tr></thead><tbody id="v2TableBody"></tbody></table></div></div></section>
+        <section id="view-v1" class="view-section">
+            <div class="top-header"><h2>Version 1 Pipeline Monitoring</h2></div>
+            <div class="card">
+                <div class="filter-row">
+                    <input type="text" id="searchV1" class="modern-input" placeholder="Search Names..." style="flex:1; min-width: 200px;" onkeyup="renderV1Table()">
+                    <select id="filterRegV1" class="modern-input" style="flex:1; min-width: 150px;" onchange="renderV1Table()"><option value="All">All Regions</option></select>
+                    <select id="filterProvV1" class="modern-input" style="flex:1; min-width: 150px;" onchange="renderV1Table()"><option value="All">All Provinces</option></select>
+                    <select id="filterMuniV1" class="modern-input" style="flex:1; min-width: 150px;" onchange="renderV1Table()"><option value="All">All Municipalities</option></select>
+                    <select id="filterDistV1" class="modern-input" style="flex:1; min-width: 150px;" onchange="renderV1Table()"><option value="All">All Districts</option></select>
+                </div>
+                <div class="table-container">
+                    <table class="modern-table">
+                        <thead><tr><th>LGU & Province</th><th>V1 Action Status</th><th>Documentary Reqs</th><th>Action</th></tr></thead>
+                        <tbody id="v1TableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-v2" class="view-section">
+            <div class="top-header"><h2>Version 2 Deployment Pipeline</h2></div>
+            <div class="card">
+                <div class="filter-row">
+                    <input type="text" id="searchV2" class="modern-input" placeholder="Search Names..." style="flex:1; min-width: 200px;" onkeyup="renderV2Table()">
+                    <select id="filterRegV2" class="modern-input" style="flex:1; min-width: 150px;" onchange="renderV2Table()"><option value="All">All Regions</option></select>
+                    <select id="filterProvV2" class="modern-input" style="flex:1; min-width: 150px;" onchange="renderV2Table()"><option value="All">All Provinces</option></select>
+                    <select id="filterMuniV2" class="modern-input" style="flex:1; min-width: 150px;" onchange="renderV2Table()"><option value="All">All Municipalities</option></select>
+                    <select id="filterDistV2" class="modern-input" style="flex:1; min-width: 150px;" onchange="renderV2Table()"><option value="All">All Districts</option></select>
+                </div>
+                <div class="table-container">
+                    <table class="modern-table">
+                        <thead><tr><th>LGU (eReadiness)</th><th>Waterfall Status</th><th>UAT Status</th><th>Action</th></tr></thead>
+                        <tbody id="v2TableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
         
         <section id="view-bpco" class="view-section">
             <div class="top-header"><h2>BPCO Operations Tracking</h2></div>
@@ -263,10 +347,10 @@
                 <button class="btn-primary" onclick="openUserModal()">+ Add New User</button>
             </div>
             <div class="card">
-                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Manage administrator accounts. These users can be assigned tasks and are tracked in the Audit Log.</p>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Manage administrator accounts. Pending users require your approval to access the system.</p>
                 <div class="table-container">
                     <table class="modern-table">
-                        <thead><tr><th>Username</th><th>Account Created</th><th>Action</th></tr></thead>
+                        <thead><tr><th>Username</th><th>Account Created</th><th>Status</th><th>Action</th></tr></thead>
                         <tbody id="usersTableBody"></tbody>
                     </table>
                 </div>
@@ -274,16 +358,117 @@
         </section>
 
         <section id="view-audit" class="view-section">
-            <div class="top-header"><h2>System Audit Trail</h2><button class="btn-outline" onclick="fetchLogs()">↻ Refresh Logs</button></div>
+            <div class="top-header">
+                <h2>System Audit Trail</h2>
+                <div>
+                    <button class="btn-outline" style="margin-right: 10px;" onclick="openLoginLogsModal()">👥 View Login Logs</button>
+                    <button class="btn-outline" onclick="fetchLogs()">↻ Refresh Logs</button>
+                </div>
+            </div>
             <div class="card">
-                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">This log automatically records all system interactions, edits, and tasks completed, securely tied to the active user account.</p>
-                <div class="table-container"><table class="modern-table" style="font-size:0.85rem;"><thead><tr><th style="width:200px;">Date & Time</th><th>User Account</th><th>Action Performed</th></tr></thead><tbody id="auditTableBody"></tbody></table></div>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">This log precisely records all system interactions, task completions, and data pipeline shifts.</p>
+                <div class="table-container">
+                    <table class="modern-table" style="font-size:0.85rem;">
+                        <thead><tr><th style="width:200px;">Date & Time</th><th>User Account</th><th>Precise Action Performed</th></tr></thead>
+                        <tbody id="auditTableBody"></tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
-        <section id="view-settings" class="view-section"><div class="top-header"><h2>System Settings</h2></div><div class="card" style="max-width: 600px;"><div class="flex-between" style="padding:15px 0; border-bottom:1px solid var(--border-color);"><div><h4 style="margin:0;">Theme Preference</h4><span class="text-muted">Toggle Light/Dark Mode</span></div><button class="btn-outline" onclick="toggleTheme()" id="themeToggleBtn">Switch to Dark Mode</button></div><div class="flex-between" style="padding:15px 0;"><div><h4 style="margin:0;">Technical Support</h4><span class="text-muted">Contact the lead engineer.</span></div><a href="mailto:irisjuhraaa@gmail.com" class="btn-primary" style="text-decoration:none;">irisjuhraaa@gmail.com</a></div></div></section>
+        <section id="view-export" class="view-section">
+            <div class="top-header"><h2>Custom Data Export</h2></div>
+            <div class="card" style="max-width: 600px;">
+                <p style="font-size:0.95rem; color:var(--text-main); margin-bottom:10px;"><strong>Select Datasets to Compile</strong></p>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:20px;">The system will extract your selected modules and stitch them together into a unified, perfectly formatted CSV file for external reporting.</p>
+                
+                <div style="display:flex; flex-direction:column; gap:12px; margin-top: 15px; background:var(--bg-color); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <label style="display:flex; align-items:center; gap:10px; cursor:pointer;"><input type="checkbox" id="exportMasterlist" checked style="width:18px; height:18px;"> <strong>LGU Master Profile & eReadiness</strong></label>
+                    <label style="display:flex; align-items:center; gap:10px; cursor:pointer;"><input type="checkbox" id="exportV1" checked style="width:18px; height:18px;"> <strong>Version 1 Monitoring Data</strong></label>
+                    <label style="display:flex; align-items:center; gap:10px; cursor:pointer;"><input type="checkbox" id="exportV2" checked style="width:18px; height:18px;"> <strong>Version 2 Deployment Pipelines</strong></label>
+                    <label style="display:flex; align-items:center; gap:10px; cursor:pointer;"><input type="checkbox" id="exportBPCO" checked style="width:18px; height:18px;"> <strong>BPCO Tracking Data</strong></label>
+                    <hr style="border:0; border-top:1px solid var(--border-color); margin: 10px 0;">
+                    <label style="display:flex; align-items:center; gap:10px; cursor:pointer;"><input type="checkbox" id="exportTasks" style="width:18px; height:18px;"> <strong>Task Management & Action Items</strong> <span style="font-size:0.75rem; color:var(--brand-blue);">(Generates a separate file)</span></label>
+                </div>
+                
+                <div style="margin-top:25px; display:flex; justify-content:flex-end;">
+                    <button class="btn-primary" onclick="exportCustomData()">📥 Download Selected Data (CSV)</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-import" class="view-section">
+            <div class="top-header"><h2>Mass Database Import</h2></div>
+            <div class="card" style="max-width: 600px;">
+                <p style="font-size:0.95rem; color:var(--text-main); margin-bottom:10px;"><strong>Upload CSV Data</strong></p>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:20px;">
+                    This smart import engine will safely scan your uploaded CSV. If an LGU already exists, it will <strong>update their information without deleting their tasks or files</strong>. If they don't exist, it will <strong>create a new record</strong>.
+                </p>
+                
+                <div style="margin-top: 15px; background:var(--bg-color); padding: 20px; border-radius: 8px; border: 1px dashed var(--border-color); text-align: center;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--brand-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 10px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <br>
+                    <input type="file" id="importCsvFile" accept=".csv" class="modern-input" style="max-width: 300px; margin: auto;">
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top: 10px;">Expected Columns: Region, Province, District, Income Class, Municipality, V1 Status, V2 Status, BPCO Status.</p>
+                </div>
+                
+                <div style="margin-top:25px; display:flex; justify-content:space-between; align-items:center;">
+                    <a href="#" style="font-size:0.85rem; color:var(--brand-blue); text-decoration: underline;" onclick="alert('Expected Columns:\\n1. Region\\n2. Province\\n3. District\\n4. Income Class\\n5. Municipality\\n6. V1 Status\\n7. V2 Status\\n8. BPCO Status')">View Expected CSV Format</a>
+                    <button class="btn-primary" onclick="importCSVData()" id="importBtn">🚀 Run Import Sequence</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-settings" class="view-section">
+            <div class="top-header"><h2>System Settings</h2></div>
+            <div class="card" style="max-width: 600px;">
+                <div class="section-header">Appearance</div>
+                <div class="flex-between" style="padding:15px 0; border-bottom:1px solid var(--border-color);">
+                    <div><h4 style="margin:0;">Theme Preference</h4><span class="text-muted">Toggle Light/Dark Mode</span></div>
+                    <button class="btn-outline" onclick="toggleTheme()" id="themeToggleBtn">Switch to Dark Mode</button>
+                </div>
+                
+                <div class="section-header" style="margin-top:30px;">Account Recovery & Security</div>
+                <div class="flex-between" style="padding:15px 0; border-bottom:1px solid var(--border-color);">
+                    <div style="flex:1; margin-right: 20px;">
+                        <h4 style="margin:0;">Recovery Email Address</h4>
+                        <span class="text-muted">Used for secure OTP password resets.</span>
+                        <input type="email" id="settingsRecoveryEmail" class="modern-input" style="margin-top: 10px;" placeholder="No email set">
+                    </div>
+                    <button class="btn-primary" onclick="updateRecoveryEmail()">Save Email</button>
+                </div>
+                <div class="flex-between" style="padding:15px 0; border-bottom:1px solid var(--border-color);">
+                    <div>
+                        <h4 style="margin:0;">Account Password</h4>
+                        <span class="text-muted">Change your password securely via email verification.</span>
+                    </div>
+                    <button class="btn-primary" onclick="openPasswordChangeModal()">Change Password</button>
+                </div>
+
+                <div class="section-header" style="margin-top:30px;">Technical Support</div>
+                <div class="flex-between" style="padding:15px 0;">
+                    <div><h4 style="margin:0;">Lead Engineer Contact</h4><span class="text-muted">Direct line to system architecture.</span></div>
+                    <a href="mailto:irisjuhraaa@gmail.com" class="btn-outline" style="text-decoration:none;">irisjuhraaa@gmail.com</a>
+                </div>
+            </div>
+        </section>
 
     </main>
+
+    <div id="loginLogsModal" class="modal-overlay" style="z-index: 1200;">
+        <div class="modal-box modal-large">
+            <div class="modal-header">
+                <h2>Login Activity Logs</h2>
+                <button class="close-btn" onclick="document.getElementById('loginLogsModal').classList.remove('active')">&times;</button>
+            </div>
+            <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+                <table class="modern-table" style="font-size:0.85rem;">
+                    <thead><tr><th style="width:200px;">Date & Time</th><th>User Account</th><th>Login Action</th></tr></thead>
+                    <tbody id="loginLogsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <div id="userModal" class="modal-overlay">
         <div class="modal-box" style="max-width: 400px;">
@@ -310,17 +495,31 @@
         </div>
     </div>
 
-    <div id="addTaskModal" class="modal-overlay">
+    <div id="changePasswordModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 400px;">
+            <div class="modal-header"><h2>Security Verification</h2><button class="close-btn" onclick="document.getElementById('changePasswordModal').classList.remove('active')">&times;</button></div>
+            <div class="modal-body">
+                <div id="cpRequestUI">
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">A 3-minute secure 6-digit OTP code will be sent to your registered email to verify this change.</p>
+                    <button class="btn-primary" id="cpSendBtn" onclick="requestSettingsOTP()">Send OTP Code</button>
+                </div>
+                <div id="cpVerifyUI" style="display:none;">
+                    <div class="timer-text" id="cpTimer">Code expires in: 3:00</div>
+                    <input type="text" id="cpCode" class="modern-input" placeholder="Enter 6-Digit OTP">
+                    <input type="password" id="cpNewPass" class="modern-input" placeholder="Enter New Password">
+                    <button class="btn-primary" onclick="submitNewPassword()">Update Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addTaskModal" class="modal-overlay" style="z-index: 1300;">
         <div class="modal-box">
             <div class="modal-header"><h2>Assign Action Item</h2><button class="close-btn" onclick="document.getElementById('addTaskModal').classList.remove('active')">&times;</button></div>
             <div class="modal-body">
                 <form id="addTaskForm" onsubmit="event.preventDefault(); submitNewTask();">
                     <div class="form-grid">
-                        <div class="input-group full-width"><label>Target LGU</label><select id="taskLguSelect" class="modern-input" onchange="checkLguTaskRouting()" required></select></div>
-                        <div id="taskRoutingContainer" class="input-group full-width" style="display:none; padding:10px; border-radius:6px; border:1px solid #fde68a; margin-top: 10px;">
-                            <label style="color:#b45309;">⚠ LGU has multiple active pipelines. Where should this task appear?</label>
-                            <select id="taskTargetSystem" class="modern-input"><option value="General">General / Master Profile</option><option value="V1">Version 1 Monitoring</option><option value="V2">Version 2 Monitoring</option></select>
-                        </div>
+                        <div class="input-group full-width"><label>Target LGU</label><select id="taskLguSelect" class="modern-input" required></select></div>
                         <div class="input-group"><label>Assign To (System User)</label>
                             <select id="taskAssigneeSelect" class="modern-input" onchange="toggleCustomAssignee()" required><option value="">Select User...</option></select>
                             <input type="text" id="taskAssigneeCustom" class="modern-input" placeholder="Type custom name..." style="display:none; margin-top:8px;">
@@ -341,7 +540,7 @@
                 <button class="close-btn" onclick="document.getElementById('editLguModal').classList.remove('active')" style="color:white;">&times;</button>
             </div>
 
-            <div style="display: flex; background: var(--surface-color); border-bottom: 1px solid var(--border-color);">
+            <div id="modalTabHeaders" style="display: flex; background: var(--surface-color); border-bottom: 1px solid var(--border-color);">
                 <button class="tab-btn active" onclick="switchProfTab('tab-general')">General</button>
                 <button class="tab-btn" onclick="switchProfTab('tab-v1')">V1 Monitoring</button>
                 <button class="tab-btn" onclick="switchProfTab('tab-v2')">V2 Monitoring</button>
@@ -379,76 +578,99 @@
                         
                         <div class="input-group full-width"><hr style="border:0; border-top:1px solid var(--border-color); margin: 5px 0;"></div>
                         
-                        <div class="input-group"><label>Overall Master Status</label><select id="editStatus" class="modern-input"><option value="For Engagement">For Engagement</option><option value="Passed">Passed</option><option value="Failed">Failed</option><option value="Lacking Documentary Requirements">Lacking Docs</option></select></div>
-                        <div class="input-group"><label>V1 Global Operational?</label><input type="checkbox" id="editV1"></div>
-                        <div class="input-group"><label>V2 Global Operational?</label><input type="checkbox" id="editV2"></div>
-                        <div class="input-group"><label>Own System?</label><input type="checkbox" id="editOwn"></div>
-                        <div class="input-group"><label>BPCO Status (View-Only)</label><input type="text" id="editBpcoView" class="modern-input" readonly style="background:var(--bg-color);"></div>
+                        <div class="input-group"><label>Overall Master Status</label><input type="text" id="editStatus" class="modern-input" readonly style="background:var(--bg-color);"></div>
+                        
+                        <div class="input-group full-width">
+                            <label>Current Operational System Version</label>
+                            <select id="editSystemVersion" class="modern-input" style="font-weight: bold; color: var(--brand-blue);" onchange="syncMasterStatus()">
+                                <option value="None">None (Pending/No System)</option>
+                                <option value="V1">Version 1 (V1) Monitoring</option>
+                                <option value="V2">Version 2 (V2) Pipeline</option>
+                                <option value="Own System">Own System</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group full-width"><label>BPCO Status (View-Only)</label><input type="text" id="editBpcoView" class="modern-input" readonly style="background:var(--bg-color);"></div>
                     </div>
                     <div class="input-group full-width" style="margin-top: 20px;"><div class="flex-between" style="border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-bottom: 10px;"><h4 style="margin:0;">Contact Persons (BPLO, Treasury, etc.)</h4><button type="button" class="btn-outline" style="padding: 4px 8px; font-size: 0.8rem;" onclick="addContactRow()">+ Add Contact</button></div><div class="table-container"><table class="modern-table" style="font-size: 0.8rem;"><thead><tr><th>Name & Email</th><th>Contact #</th><th>Role & Designation</th><th>Status</th><th>Action</th></tr></thead><tbody id="contactsTableBody"></tbody></table></div></div>
                 </div>
 
                 <div id="tab-v1" class="prof-tab">
                     <div class="form-grid">
-                        <div class="input-group full-width"><label>V1 Status Action</label><select id="v1Status" class="modern-input" style="font-weight: bold;"><option value="Pending">Pending</option><option value="For Engagement">For Engagement</option><option value="For Training">For Training</option><option value="Data Migration">Data Migration</option><option value="On-Going Testing and Data Build-up">On-Going Testing and Data Build-up</option><option value="Operational">Operational</option><option value="With Concerns">With Concerns</option><option value="Withdraw">Withdraw</option><option value="Non-Operational">Non-Operational</option><option value="N/A">N/A (No System Yet)</option><option value="Own System">Own System</option></select></div>
+                        <div class="input-group full-width">
+                            <label>V1 Status Action</label>
+                            <select id="v1Status" class="modern-input" style="font-weight: bold;" onchange="syncMasterStatus()">
+                                <option value="Pending">Pending</option>
+                                <option value="Operational">Operational</option>
+                                <option value="With Concerns">With Concerns</option>
+                                <option value="Withdraw">Withdraw</option>
+                            </select>
+                        </div>
                         <div class="section-header">Documentary Requirements & Actual Uploads</div>
-                        <div class="input-group full-width file-input-group"><div style="flex:1"><label>LOI Received Date</label><input type="date" id="v1Loi" class="modern-input"></div><div style="flex:2"><label>Upload LOI Form</label><input type="file" id="v1LoiFile" class="modern-input"><input type="hidden" id="v1LoiLink"><div id="v1LoiView" class="file-status-link"></div></div></div>
-                        <div class="input-group full-width file-input-group"><div style="flex:1"><label>SB Reso Received Date</label><input type="date" id="v1Sb" class="modern-input"></div><div style="flex:2"><label>Upload SB Reso Form</label><input type="file" id="v1SbFile" class="modern-input"><input type="hidden" id="v1SbLink"><div id="v1SbView" class="file-status-link"></div></div></div>
-                        <div class="input-group full-width file-input-group"><div style="flex:1"><label>MOA Received Date</label><input type="date" id="v1Moa" class="modern-input"></div><div style="flex:2"><label>Upload MOA Form</label><input type="file" id="v1MoaFile" class="modern-input"><input type="hidden" id="v1MoaLink"><div id="v1MoaView" class="file-status-link"></div></div></div>
-                        <div class="input-group full-width file-input-group"><div style="flex:1"><label>CBD Form Received Date</label><input type="date" id="v1Cbd" class="modern-input"></div><div style="flex:2"><label>Upload CBD Form</label><input type="file" id="v1CbdFile" class="modern-input"><input type="hidden" id="v1CbdLink"><div id="v1CbdView" class="file-status-link"></div></div></div>
+                        
+                        <div class="input-group full-width file-input-group">
+                            <div><label>LOI Received Date</label><input type="date" id="v1Loi" class="modern-input"></div>
+                            <div><label>Upload LOI Form</label><input type="file" id="v1LoiFile" class="modern-input"><input type="hidden" id="v1LoiLink"><div id="v1LoiView"></div></div>
+                        </div>
+                        <div class="input-group full-width file-input-group">
+                            <div><label>SB Reso Received Date</label><input type="date" id="v1Sb" class="modern-input"></div>
+                            <div><label>Upload SB Reso Form</label><input type="file" id="v1SbFile" class="modern-input"><input type="hidden" id="v1SbLink"><div id="v1SbView"></div></div>
+                        </div>
+                        <div class="input-group full-width file-input-group">
+                            <div><label>MOA Received Date</label><input type="date" id="v1Moa" class="modern-input"></div>
+                            <div><label>Upload MOA Form</label><input type="file" id="v1MoaFile" class="modern-input"><input type="hidden" id="v1MoaLink"><div id="v1MoaView"></div></div>
+                        </div>
+                        <div class="input-group full-width file-input-group">
+                            <div><label>CBD Form Received Date</label><input type="date" id="v1Cbd" class="modern-input"></div>
+                            <div><label>Upload CBD Form</label><input type="file" id="v1CbdFile" class="modern-input"><input type="hidden" id="v1CbdLink"><div id="v1CbdView"></div></div>
+                        </div>
+                        <div id="v1MigrateBtnArea" class="input-group full-width" style="margin-top:20px;"></div>
                     </div>
                 </div>
 
                 <div id="tab-v2" class="prof-tab">
                     <div class="form-grid">
-                        <div class="input-group full-width"><label>V2 Historical Status Action (View-Only/Overrides auto-state)</label><select id="v2Status" class="modern-input" style="font-weight: bold;" onchange="checkV2Waterfall()"><option value="N/A">N/A (No System Yet)</option><option value="Pending">Pending</option><option value="For Engagement">For Engagement</option><option value="Ongoing Engagement">Ongoing Engagement</option><option value="Lacking Documentary Requirements">Lacking Docs</option><option value="eReadiness for Rechecking">eReadiness for Rechecking</option><option value="For Training">For Training</option><option value="Data Migration">Data Migration</option><option value="On-Going Testing and Data Build-up">On-Going Testing and Data Build-up</option><option value="Operational">Operational</option><option value="With Concerns">With Concerns</option><option value="Withdraw">Withdraw</option><option value="Non-Operational">Non-Operational</option><option value="Own System">Own System</option></select></div>
+                        <div class="input-group full-width"><label>V2 Historical Status Action (View-Only/Overrides auto-state)</label><select id="v2Status" class="modern-input" style="font-weight: bold;" onchange="checkV2Waterfall()"><option value="N/A">N/A (No System Yet)</option><option value="Pending">Pending</option><option value="For Engagement">For Engagement</option><option value="Ongoing Engagement">Ongoing Engagement</option><option value="Lacking Documentary Requirements">Lacking Docs</option><option value="eReadiness for Rechecking">eReadiness for Rechecking</option><option value="For Training">For Training</option><option value="Data Migration">Data Migration</option><option value="On-Going Testing and Data Build-up">On-Going Testing and Data Build-up</option><option value="Operational">Operational</option></select></div>
                         
-                        <div id="v2_phase_0" class="v2-phase full-width">
-                            <div class="section-header">0. eReadiness Phase</div>
-                            <div class="form-grid">
-                                <div class="input-group"><label>eReadiness Score (Passing: 60)</label><input type="number" id="editScore" class="modern-input" oninput="checkV2Waterfall()"></div>
-                                <div class="input-group"><label>eReadiness Result (Auto-calculated)</label><input type="text" id="editScoreLabel" class="modern-input" readonly style="background:var(--bg-color);"></div>
-                                <div class="input-group full-width file-input-group"><div style="flex:1"><label>Upload eReadiness Form</label><input type="file" id="v2EreadinessFile" class="modern-input"><input type="hidden" id="v2EreadinessLink"><div id="v2EreadinessView" class="file-status-link"></div></div></div>
-                            </div>
-                        </div>
-
                         <div id="v2_phase_1" class="v2-phase full-width">
-                            <div class="section-header">1. Documentary Requirements & Uploads</div>
+                            <div class="section-header">1. eReadiness Phase</div>
                             <div class="form-grid">
-                                <div class="input-group full-width file-input-group"><div style="flex:1"><label>LOI Received Date</label><input type="date" id="v2Loi" class="modern-input" onchange="checkV2Waterfall()"></div><div style="flex:2"><label>Upload LOI File</label><input type="file" id="v2LoiFile" class="modern-input"><input type="hidden" id="v2LoiLink"><div id="v2LoiView" class="file-status-link"></div></div></div>
-                                <div class="input-group full-width file-input-group"><div style="flex:1"><label>SB Reso Received Date</label><input type="date" id="v2Sb" class="modern-input" onchange="checkV2Waterfall()"></div><div style="flex:2"><label>Upload SB Reso File</label><input type="file" id="v2SbFile" class="modern-input"><input type="hidden" id="v2SbLink"><div id="v2SbView" class="file-status-link"></div></div></div>
-                                <div class="input-group full-width file-input-group"><div style="flex:1"><label>MOU Received Date</label><input type="date" id="v2Mou" class="modern-input" onchange="checkV2Waterfall()"></div><div style="flex:2"><label>Upload MOU File</label><input type="file" id="v2MouFile" class="modern-input"><input type="hidden" id="v2MouLink"><div id="v2MouView" class="file-status-link"></div></div></div>
-                                <div class="input-group full-width file-input-group"><div style="flex:1"><label>CBD Form Received Date</label><input type="date" id="v2Cbd" class="modern-input" onchange="checkV2Waterfall()"></div><div style="flex:2"><label>Upload CBD Form</label><input type="file" id="v2CbdFile" class="modern-input"><input type="hidden" id="v2CbdLink"><div id="v2CbdView" class="file-status-link"></div></div></div>
+                                <div class="input-group"><label>eReadiness Score</label><input type="number" id="editScore" class="modern-input" oninput="checkV2Waterfall()"></div>
+                                <div class="input-group"><label>eReadiness Result</label><input type="text" id="editScoreLabel" class="modern-input" readonly style="background:var(--bg-color);"></div>
+                                <div class="input-group full-width"><label>Upload eReadiness Form</label><input type="file" id="v2EreadinessFile" class="modern-input"><input type="hidden" id="v2EreadinessLink"><div id="v2EreadinessView"></div></div>
                             </div>
                         </div>
 
                         <div id="v2_phase_2" class="v2-phase full-width">
-                            <div class="section-header">2. Requests & eGovPay Setup</div>
-                            <div style="background:var(--bg-color); padding:15px; border-radius:8px; border:1px solid var(--border-color); margin-bottom:15px;">
-                                <div class="flex-between">
-                                    <h4 style="margin:0; color:var(--brand-blue);">Action Items (To Do)</h4>
-                                    <button type="button" class="btn-outline" onclick="openAddTaskForLgu()">+ Assign Task</button>
-                                </div>
-                                <p style="font-size:0.75rem; color:var(--text-muted);">Tasks created here (like Notify Action Items) will be directly assigned in the Task Manager.</p>
+                            <div class="section-header">2. Documentary Requirements</div>
+                            <div class="form-grid">
+                                <div class="input-group full-width file-input-group"><div><label>LOI Received Date</label><input type="date" id="v2Loi" class="modern-input" onchange="checkV2Waterfall()"></div><div><label>Upload LOI File</label><input type="file" id="v2LoiFile" class="modern-input"><input type="hidden" id="v2LoiLink"><div id="v2LoiView"></div></div></div>
+                                <div class="input-group full-width file-input-group"><div><label>SB Reso Received Date</label><input type="date" id="v2Sb" class="modern-input" onchange="checkV2Waterfall()"></div><div><label>Upload SB Reso File</label><input type="file" id="v2SbFile" class="modern-input"><input type="hidden" id="v2SbLink"><div id="v2SbView"></div></div></div>
+                                <div class="input-group full-width file-input-group"><div><label>MOU Received Date</label><input type="date" id="v2Mou" class="modern-input" onchange="checkV2Waterfall()"></div><div><label>Upload MOU File</label><input type="file" id="v2MouFile" class="modern-input"><input type="hidden" id="v2MouLink"><div id="v2MouView"></div></div></div>
+                                <div class="input-group full-width file-input-group"><div><label>CBD Form Received Date</label><input type="date" id="v2Cbd" class="modern-input" onchange="checkV2Waterfall()"></div><div><label>Upload CBD Form</label><input type="file" id="v2CbdFile" class="modern-input"><input type="hidden" id="v2CbdLink"><div id="v2CbdView"></div></div></div>
                             </div>
+                        </div>
+                        
+                        <div id="v2_phase_3" class="v2-phase full-width">
+                            <div class="section-header">3. Requests & eGovPay Setup</div>
                             <div class="form-grid">
                                 <div class="input-group"><label>CBD Date Endorsed to Bank</label><input type="date" id="v2CbdEndorsed" class="modern-input" onchange="checkV2Waterfall()"></div>
                                 <div class="input-group"><label>CBD Approval Date</label><input type="date" id="v2CbdApproved" class="modern-input" onchange="checkV2Waterfall()"></div>
                             </div>
                         </div>
 
-                        <div id="v2_phase_3" class="v2-phase full-width">
-                            <div class="section-header">3. Training Phase Details</div>
+                        <div id="v2_phase_4" class="v2-phase full-width">
+                            <div class="section-header">4. Training Phase Details</div>
                             <div class="form-grid">
                                 <div class="input-group"><label>Training Date</label><input type="date" id="v2TrnDate" class="modern-input" onchange="checkV2Waterfall()"></div><div class="input-group"><label>Status</label><select id="v2TrnStat" class="modern-input" onchange="checkV2Waterfall()"><option>Pending</option><option>On-going</option><option>Completed</option></select></div>
                                 <div class="input-group"><label>Pax (Male)</label><input type="number" id="v2TrnM" class="modern-input" oninput="checkV2Waterfall()"></div><div class="input-group"><label>Pax (Female)</label><input type="number" id="v2TrnF" class="modern-input" oninput="checkV2Waterfall()"></div>
                                 <div class="input-group"><label>Consent Form</label><select id="v2TrnCon" class="modern-input" onchange="checkV2Waterfall()"><option value="0">Pending</option><option value="1">Submitted</option></select></div><div class="input-group"><label>Designation Form</label><select id="v2TrnDes" class="modern-input" onchange="checkV2Waterfall()"><option value="0">Pending</option><option value="1">Submitted</option></select></div>
-                                <div class="input-group full-width file-input-group"><div style="flex:1"><label>Upload AAR File</label><input type="file" id="v2TrnAarFile" class="modern-input"><input type="hidden" id="v2TrnAarLink"><div id="v2TrnAarView" class="file-status-link"></div></div></div>
+                                <div class="input-group full-width"><label>Upload AAR File</label><input type="file" id="v2TrnAarFile" class="modern-input"><input type="hidden" id="v2TrnAarLink"><div id="v2TrnAarView"></div></div>
                             </div>
                         </div>
 
-                        <div id="v2_phase_4" class="v2-phase full-width">
-                            <div class="section-header">4. UAT Phase</div>
+                        <div id="v2_phase_5" class="v2-phase full-width">
+                            <div class="section-header">5. UAT Phase</div>
                             <div class="form-grid">
                                 <div class="input-group full-width"><h4 style="margin-bottom:0;">System UAT</h4></div>
                                 <div class="input-group"><label>System UAT Status</label><select id="v2UatSys" class="modern-input" onchange="checkV2Waterfall()"><option value="Pending">Pending</option><option value="On-going">On-going</option><option value="With concern">With concern</option><option value="Completed">Completed</option></select></div>
@@ -460,24 +682,24 @@
                             </div>
                         </div>
 
-                        <div id="v2_phase_5" class="v2-phase full-width">
-                            <div class="section-header">5. System Dry-Run</div>
+                        <div id="v2_phase_6" class="v2-phase full-width">
+                            <div class="section-header">6. System Dry-Run</div>
                             <div class="form-grid">
                                 <div class="input-group"><label>Date Conducted</label><input type="date" id="v2Dry" class="modern-input" onchange="checkV2Waterfall()"></div><div class="input-group"><label>Dry-Run Status</label><select id="v2DryStat" class="modern-input" onchange="checkV2Waterfall()"><option>Pending</option><option>Completed</option></select></div>
                                 <div class="input-group"><label>Pax (Male)</label><input type="number" id="v2DryM" class="modern-input" oninput="checkV2Waterfall()"></div><div class="input-group"><label>Pax (Female)</label><input type="number" id="v2DryF" class="modern-input" oninput="checkV2Waterfall()"></div>
-                                <div class="input-group file-input-group full-width"><div style="flex:1"><label>Upload Dry-Run AAR File</label><input type="file" id="v2DryAarFile" class="modern-input"><input type="hidden" id="v2DryAarLink"><div id="v2DryAarView" class="file-status-link"></div></div></div>
+                                <div class="input-group full-width"><label>Upload Dry-Run AAR File</label><input type="file" id="v2DryAarFile" class="modern-input"><input type="hidden" id="v2DryAarLink"><div id="v2DryAarView"></div></div>
                             </div>
                         </div>
 
-                        <div id="v2_phase_6" class="v2-phase full-width">
-                            <div class="section-header">6. Data Migration</div>
+                        <div id="v2_phase_7" class="v2-phase full-width">
+                            <div class="section-header">7. Data Migration</div>
                             <div class="form-grid">
                                 <div class="input-group"><label>Migration Status</label><select id="v2MigStat" class="modern-input" onchange="checkV2Waterfall()"><option value="Pending">Pending</option><option value="On-going">On-going</option><option value="With concern">With concern</option><option value="Completed">Completed</option></select></div><div class="input-group"><label>Migration Remarks</label><textarea id="v2MigRem" class="modern-input" rows="1" style="resize:vertical;" oninput="checkV2Waterfall()"></textarea></div>
                             </div>
                         </div>
 
-                        <div id="v2_phase_7" class="v2-phase full-width">
-                            <div class="section-header">7. Launching Phase</div>
+                        <div id="v2_phase_8" class="v2-phase full-width">
+                            <div class="section-header">8. Launching Phase</div>
                             <div class="form-grid">
                                 <div class="input-group"><label>Launching Date</label><input type="date" id="v2Launch" class="modern-input" onchange="checkV2Waterfall()"></div><div class="input-group"><label>Number of Pax</label><input type="number" id="v2LaunchPax" class="modern-input" oninput="checkV2Waterfall()"></div>
                                 <div class="input-group full-width"><label>Launch Status</label><select id="v2LaunchStat" class="modern-input" style="font-weight:bold; color:var(--brand-blue);" onchange="checkV2Waterfall()"><option value="Pending">Pending</option><option value="Completed">Completed [Operational]</option></select></div>
@@ -492,12 +714,12 @@
                         
                         <div class="section-header">Documentary Submissions & Uploads</div>
                         <div class="input-group full-width file-input-group">
-                            <div style="flex:1"><label>LOI Submitted Date</label><input type="date" id="bpcoLoi" class="modern-input"></div>
-                            <div style="flex:2"><label>Upload LOI File</label><input type="file" id="bpcoLoiFile" class="modern-input"><input type="hidden" id="bpcoLoiLink"><div id="bpcoLoiView" class="file-status-link"></div></div>
+                            <div><label>LOI Submitted Date</label><input type="date" id="bpcoLoi" class="modern-input"></div>
+                            <div><label>Upload LOI File</label><input type="file" id="bpcoLoiFile" class="modern-input"><input type="hidden" id="bpcoLoiLink"><div id="bpcoLoiView"></div></div>
                         </div>
                         <div class="input-group full-width file-input-group">
-                            <div style="flex:1"><label>Designation Form</label><input type="date" id="bpcoDesig" class="modern-input"></div>
-                            <div style="flex:2"><label>Upload Designation Form</label><input type="file" id="bpcoDesigFile" class="modern-input"><input type="hidden" id="bpcoDesigLink"><div id="bpcoDesigView" class="file-status-link"></div></div>
+                            <div><label>Designation Form</label><input type="date" id="bpcoDesig" class="modern-input"></div>
+                            <div><label>Upload Designation Form</label><input type="file" id="bpcoDesigFile" class="modern-input"><input type="hidden" id="bpcoDesigLink"><div id="bpcoDesigView"></div></div>
                         </div>
                         
                         <div class="section-header">Training Remarks</div>
@@ -515,6 +737,6 @@
         </div>
     </div>
 
-   <script src="app.js?v=33"></script>
+   <script src="app.js?v=48"></script>
 </body> 
 </html> 
